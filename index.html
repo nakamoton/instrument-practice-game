@@ -141,8 +141,13 @@
     function drawStaffLines() {
       ctx.strokeStyle = '#000';
       ctx.lineWidth = 1;
-      const staffPitches = [130.81, 146.83, 164.81, 174.61, 196, 261.63, 293.66, 329.63, 349.23, 392];
-      staffPitches.forEach(freq => {
+
+      // ヘ音記号（F clef）五線: F2〜A2〜C3〜E3〜G3
+      const bassStaff = [87.31, 110.00, 130.81, 164.81, 196.00];
+      // ト音記号（G clef）五線: E4〜G4〜B4〜D5〜F5
+      const trebleStaff = [329.63, 392.00, 493.88, 587.33, 698.46];
+
+      [...bassStaff, ...trebleStaff].forEach(freq => {
         const y = pitchToY(freq);
         ctx.beginPath();
         ctx.moveTo(0, y);
@@ -150,14 +155,17 @@
         ctx.stroke();
       });
     }
+      });
+    }
 
     function drawClefs() {
       ctx.fillStyle = '#000';
       ctx.font = '48px serif';
-      const trebleY = pitchToY(392) + 12; // G4
-      const bassY = pitchToY(130.81) + 16; // C3
-      ctx.fillText('\uD834\uDD1E', 10, trebleY);
-      ctx.fillText('\uD834\uDD22', 10, bassY);
+      const trebleY = pitchToY(392.00) + 12; // G4 (第2線)
+      const bassY = pitchToY(130.81) + 16;  // C3 (五線の中央)
+      ctx.fillText('𝄞', 10, trebleY);
+      ctx.fillText('𝄢', 10, bassY);
+    }
     }
 
     function detectPitch(buffer, sampleRate) {

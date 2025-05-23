@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>楽器練習ゲーム（軽量版）</title>
+  <title>楽器練習ゲーム</title>
   <style>
     canvas {
       border: 1px solid black;
@@ -43,7 +43,7 @@
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       source = audioContext.createMediaStreamSource(stream);
       analyser = audioContext.createAnalyser();
-      analyser.fftSize = 8192; // 軽量化：必要十分な分解能
+      analyser.fftSize = 32768; // 高精度分析（ピアノ全域対応）
       buffer = new Float32Array(analyser.fftSize);
       source.connect(analyser);
 
@@ -111,15 +111,13 @@
       const now = performance.now();
       const scrollSpeed = canvas.width / (4 * 1000);
 
-      for (let i = 0; i < noteHistory.length; i++) {
-        const note = noteHistory[i];
+      noteHistory.forEach(note => {
         const x = canvas.width - (now - note.time) * scrollSpeed;
-        if (x < -20) continue;
         const width = 10;
         const height = note.strength * 100;
         ctx.fillStyle = note.color;
         ctx.fillRect(x, note.y - height / 2, width, height);
-      }
+      });
     }
 
     function drawMetronomeLines() {
@@ -127,7 +125,7 @@
       const intervalMs = 60000 / BPM;
       const now = performance.now();
       const scrollSpeed = canvas.width / (4 * 1000);
-      for (let i = -5; i < 20; i++) {
+      for (let i = -10; i < 100; i++) {
         const metronomeTime = now - (now % intervalMs) - i * intervalMs;
         const x = canvas.width - (now - metronomeTime) * scrollSpeed;
         if (x >= 0 && x <= canvas.width) {
@@ -143,8 +141,12 @@
     function drawStaffLines() {
       ctx.strokeStyle = '#000';
       ctx.lineWidth = 1;
+
+      // ヘ音記号（F clef）五線: F2〜A2〜C3〜E3〜G3
       const bassStaff = [87.31, 110.00, 130.81, 164.81, 196.00];
+      // ト音記号（G clef）五線: E4〜G4〜B4〜D5〜F5
       const trebleStaff = [329.63, 392.00, 493.88, 587.33, 698.46];
+
       [...bassStaff, ...trebleStaff].forEach(freq => {
         const y = pitchToY(freq);
         ctx.beginPath();
@@ -153,23 +155,26 @@
         ctx.stroke();
       });
     }
+      });
+    }
 
     function drawClefs() {
       ctx.fillStyle = '#000';
       ctx.font = '48px serif';
-      const trebleY = pitchToY(392.00) + 12;
-      const bassY = pitchToY(130.81) + 16;
-      ctx.fillText('\uD834\uDD1E', 10, trebleY);
-      ctx.fillText('\uD834\uDD22', 10, bassY);
+      const trebleY = pitchToY(392.00) + 12; // G4 (第2線)
+      const bassY = pitchToY(130.81) + 16;  // C3 (五線の中央)
+      ctx.fillText('𝄞', 10, trebleY);
+      ctx.fillText('𝄢', 10, bassY);
+    }
     }
 
     function detectPitch(buffer, sampleRate) {
       let bestOffset = -1;
       let bestCorrelation = 0;
       const SIZE = buffer.length;
-      for (let offset = 16; offset < SIZE / 2; offset += 2) { // 軽量化：間引き検索
+      for (let offset = 16; offset < SIZE / 2; offset++) {
         let correlation = 0;
-        for (let i = 0; i < SIZE - offset; i += 2) { // 軽量化：間引き比較
+        for (let i = 0; i < SIZE - offset; i++) {
           correlation += buffer[i] * buffer[i + offset];
         }
         if (correlation > bestCorrelation) {
@@ -184,16 +189,11 @@
     }
 
     function pitchToColor(pitch) {
+      const target = 440;
       if (pitch === 0) return 'gray';
-      const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-      const synestheticColors = {
-        'C': '#FF0000', 'C#': '#FF8000', 'D': '#FFFF00', 'D#': '#80FF00', 'E': '#00FF00',
-        'F': '#00FFFF', 'F#': '#0080FF', 'G': '#0000FF', 'G#': '#8000FF', 'A': '#FF00FF',
-        'A#': '#FF0080', 'B': '#804000'
-      };
-      const midiNote = Math.round(12 * Math.log2(pitch / 440) + 69);
-      const noteName = noteNames[(midiNote % 12 + 12) % 12];
-      return synestheticColors[noteName] || 'black';
+      const diff = pitch - target;
+      if (Math.abs(diff) < 5) return 'green';
+      return diff > 0 ? 'red' : 'blue';
     }
 
     function pitchToY(pitch) {
@@ -207,10 +207,10 @@
 
     function calculateVolume(buffer) {
       let sum = 0;
-      for (let i = 0; i < buffer.length; i += 2) { // 軽量化：間引き積算
+      for (let i = 0; i < buffer.length; i++) {
         sum += buffer[i] * buffer[i];
       }
-      return Math.sqrt(sum / (buffer.length / 2));
+      return Math.sqrt(sum / buffer.length);
     }
   </script>
 </body>

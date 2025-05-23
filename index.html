@@ -30,7 +30,7 @@
 
     let audioContext;
     let analyser;
-    let dataArray;
+    let buffer;
     let source;
     let oscillator;
     let metronomeInterval = null;
@@ -43,9 +43,8 @@
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       source = audioContext.createMediaStreamSource(stream);
       analyser = audioContext.createAnalyser();
-      analyser.fftSize = 4096;
-      const bufferLength = analyser.frequencyBinCount;
-      dataArray = new Float32Array(bufferLength);
+      analyser.fftSize = 32768; // 高精度分析（ピアノ全域対応）
+      buffer = new Float32Array(analyser.fftSize);
       source.connect(analyser);
 
       updateMetronome();
@@ -88,13 +87,13 @@
     function draw() {
       requestAnimationFrame(draw);
 
-      analyser.getFloatTimeDomainData(dataArray);
-      const pitch = detectPitch(dataArray, audioContext.sampleRate);
+      analyser.getFloatTimeDomainData(buffer);
+      const pitch = detectPitch(buffer, audioContext.sampleRate);
       const color = pitchToColor(pitch);
       const y = pitchToY(pitch);
-      const volume = calculateVolume(dataArray);
+      const volume = calculateVolume(buffer);
 
-      if (pitch > 0 && volume > 0.005) {
+      if (pitch > 0 && volume > 0.002) {
         noteHistory.push({
           time: performance.now(),
           pitch: pitch,
@@ -157,15 +156,15 @@
       ctx.font = '48px serif';
       const trebleY = pitchToY(392) + 12; // G4
       const bassY = pitchToY(130.81) + 16; // C3
-      ctx.fillText('\uD834\uDD1E', 10, trebleY); // ト音記号
-      ctx.fillText('\uD834\uDD22', 10, bassY);   // ヘ音記号
+      ctx.fillText('\uD834\uDD1E', 10, trebleY);
+      ctx.fillText('\uD834\uDD22', 10, bassY);
     }
 
     function detectPitch(buffer, sampleRate) {
       let bestOffset = -1;
       let bestCorrelation = 0;
       const SIZE = buffer.length;
-      for (let offset = 8; offset < 2048; offset++) {
+      for (let offset = 16; offset < SIZE / 2; offset++) {
         let correlation = 0;
         for (let i = 0; i < SIZE - offset; i++) {
           correlation += buffer[i] * buffer[i + offset];

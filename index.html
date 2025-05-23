@@ -189,11 +189,26 @@
     }
 
     function pitchToColor(pitch) {
-      const target = 440;
       if (pitch === 0) return 'gray';
-      const diff = pitch - target;
-      if (Math.abs(diff) < 5) return 'green';
-      return diff > 0 ? 'red' : 'blue';
+      const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+      const synestheticColors = {
+        'C': '#FF0000',  // 赤
+        'C#': '#FF8000',
+        'D': '#FFFF00',  // 黄
+        'D#': '#80FF00',
+        'E': '#00FF00',  // 緑
+        'F': '#00FFFF',  // 水色
+        'F#': '#0080FF',
+        'G': '#0000FF',  // 青
+        'G#': '#8000FF',
+        'A': '#FF00FF',  // ピンク
+        'A#': '#FF0080',
+        'B': '#804000'   // 茶色
+      };
+      const midiNote = Math.round(12 * Math.log2(pitch / 440) + 69);
+      const noteName = noteNames[(midiNote + 1200) % 12]; // 安全な正剰余
+      return synestheticColors[noteName] || 'black';
+    }
     }
 
     function pitchToY(pitch) {

@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>楽器練習ゲーム</title>
+  <title>楽器練習ゲーム（軽量版）</title>
   <style>
     canvas {
       border: 1px solid black;
@@ -43,7 +43,7 @@
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       source = audioContext.createMediaStreamSource(stream);
       analyser = audioContext.createAnalyser();
-      analyser.fftSize = 32768;
+      analyser.fftSize = 8192; // 軽量化：必要十分な分解能
       buffer = new Float32Array(analyser.fftSize);
       source.connect(analyser);
 
@@ -111,13 +111,15 @@
       const now = performance.now();
       const scrollSpeed = canvas.width / (4 * 1000);
 
-      noteHistory.forEach(note => {
+      for (let i = 0; i < noteHistory.length; i++) {
+        const note = noteHistory[i];
         const x = canvas.width - (now - note.time) * scrollSpeed;
+        if (x < -20) continue;
         const width = 10;
         const height = note.strength * 100;
         ctx.fillStyle = note.color;
         ctx.fillRect(x, note.y - height / 2, width, height);
-      });
+      }
     }
 
     function drawMetronomeLines() {
@@ -125,7 +127,7 @@
       const intervalMs = 60000 / BPM;
       const now = performance.now();
       const scrollSpeed = canvas.width / (4 * 1000);
-      for (let i = -10; i < 100; i++) {
+      for (let i = -5; i < 20; i++) {
         const metronomeTime = now - (now % intervalMs) - i * intervalMs;
         const x = canvas.width - (now - metronomeTime) * scrollSpeed;
         if (x >= 0 && x <= canvas.width) {
@@ -143,7 +145,6 @@
       ctx.lineWidth = 1;
       const bassStaff = [87.31, 110.00, 130.81, 164.81, 196.00];
       const trebleStaff = [329.63, 392.00, 493.88, 587.33, 698.46];
-
       [...bassStaff, ...trebleStaff].forEach(freq => {
         const y = pitchToY(freq);
         ctx.beginPath();
@@ -166,9 +167,9 @@
       let bestOffset = -1;
       let bestCorrelation = 0;
       const SIZE = buffer.length;
-      for (let offset = 16; offset < SIZE / 2; offset++) {
+      for (let offset = 16; offset < SIZE / 2; offset += 2) { // 軽量化：間引き検索
         let correlation = 0;
-        for (let i = 0; i < SIZE - offset; i++) {
+        for (let i = 0; i < SIZE - offset; i += 2) { // 軽量化：間引き比較
           correlation += buffer[i] * buffer[i + offset];
         }
         if (correlation > bestCorrelation) {
@@ -206,10 +207,10 @@
 
     function calculateVolume(buffer) {
       let sum = 0;
-      for (let i = 0; i < buffer.length; i++) {
+      for (let i = 0; i < buffer.length; i += 2) { // 軽量化：間引き積算
         sum += buffer[i] * buffer[i];
       }
-      return Math.sqrt(sum / buffer.length);
+      return Math.sqrt(sum / (buffer.length / 2));
     }
   </script>
 </body>

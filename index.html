@@ -43,7 +43,7 @@
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       source = audioContext.createMediaStreamSource(stream);
       analyser = audioContext.createAnalyser();
-      analyser.fftSize = 32768; // 高精度分析（ピアノ全域対応）
+      analyser.fftSize = 32768;
       buffer = new Float32Array(analyser.fftSize);
       source.connect(analyser);
 
@@ -141,10 +141,7 @@
     function drawStaffLines() {
       ctx.strokeStyle = '#000';
       ctx.lineWidth = 1;
-
-      // ヘ音記号（F clef）五線: F2〜A2〜C3〜E3〜G3
       const bassStaff = [87.31, 110.00, 130.81, 164.81, 196.00];
-      // ト音記号（G clef）五線: E4〜G4〜B4〜D5〜F5
       const trebleStaff = [329.63, 392.00, 493.88, 587.33, 698.46];
 
       [...bassStaff, ...trebleStaff].forEach(freq => {
@@ -155,17 +152,14 @@
         ctx.stroke();
       });
     }
-      });
-    }
 
     function drawClefs() {
       ctx.fillStyle = '#000';
       ctx.font = '48px serif';
-      const trebleY = pitchToY(392.00) + 12; // G4 (第2線)
-      const bassY = pitchToY(130.81) + 16;  // C3 (五線の中央)
-      ctx.fillText('𝄞', 10, trebleY);
-      ctx.fillText('𝄢', 10, bassY);
-    }
+      const trebleY = pitchToY(392.00) + 12;
+      const bassY = pitchToY(130.81) + 16;
+      ctx.fillText('\uD834\uDD1E', 10, trebleY);
+      ctx.fillText('\uD834\uDD22', 10, bassY);
     }
 
     function detectPitch(buffer, sampleRate) {
@@ -192,23 +186,13 @@
       if (pitch === 0) return 'gray';
       const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
       const synestheticColors = {
-        'C': '#FF0000',  // 赤
-        'C#': '#FF8000',
-        'D': '#FFFF00',  // 黄
-        'D#': '#80FF00',
-        'E': '#00FF00',  // 緑
-        'F': '#00FFFF',  // 水色
-        'F#': '#0080FF',
-        'G': '#0000FF',  // 青
-        'G#': '#8000FF',
-        'A': '#FF00FF',  // ピンク
-        'A#': '#FF0080',
-        'B': '#804000'   // 茶色
+        'C': '#FF0000', 'C#': '#FF8000', 'D': '#FFFF00', 'D#': '#80FF00', 'E': '#00FF00',
+        'F': '#00FFFF', 'F#': '#0080FF', 'G': '#0000FF', 'G#': '#8000FF', 'A': '#FF00FF',
+        'A#': '#FF0080', 'B': '#804000'
       };
       const midiNote = Math.round(12 * Math.log2(pitch / 440) + 69);
-      const noteName = noteNames[(midiNote + 1200) % 12]; // 安全な正剰余
+      const noteName = noteNames[(midiNote % 12 + 12) % 12];
       return synestheticColors[noteName] || 'black';
-    }
     }
 
     function pitchToY(pitch) {

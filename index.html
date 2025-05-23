@@ -43,7 +43,7 @@
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       source = audioContext.createMediaStreamSource(stream);
       analyser = audioContext.createAnalyser();
-      analyser.fftSize = 2048;
+      analyser.fftSize = 4096;
       const bufferLength = analyser.frequencyBinCount;
       dataArray = new Float32Array(bufferLength);
       source.connect(analyser);
@@ -165,7 +165,7 @@
       let bestOffset = -1;
       let bestCorrelation = 0;
       const SIZE = buffer.length;
-      for (let offset = 8; offset < 1000; offset++) {
+      for (let offset = 8; offset < 2048; offset++) {
         let correlation = 0;
         for (let i = 0; i < SIZE - offset; i++) {
           correlation += buffer[i] * buffer[i + offset];
@@ -175,7 +175,7 @@
           bestOffset = offset;
         }
       }
-      if (bestCorrelation > 0.01) {
+      if (bestCorrelation > 0.002) {
         return sampleRate / bestOffset;
       }
       return 0;

@@ -146,8 +146,8 @@
         metronomeInterval = setInterval(() => {
           oscillator = audioContext.createOscillator();
           const gainNode = audioContext.createGain();
-          oscillator.type = 'square';
-          oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
+          oscillator.type = 'square'; // 波形を矩形波に設定
+          oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // 基準音の440Hzに設定
           gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
           oscillator.connect(gainNode).connect(audioContext.destination);
           oscillator.start();

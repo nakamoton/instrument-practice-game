@@ -255,7 +255,8 @@
     function drawStaffLines() {
       ctx.strokeStyle = '#000';
       ctx.lineWidth = 1;
-      const bassStaff = [87.31, 110.00, 130.81, 164.81, 196.00];
+      // Bass clef staff lines: G2, B2, D3, F3, A3
+      const bassStaff = [98.00, 123.47, 146.83, 174.61, 220.00];
       const trebleStaff = [329.63, 392.00, 493.88, 587.33, 698.46];
       [...bassStaff, ...trebleStaff].forEach(freq => {
         const y = pitchToY(freq);
@@ -268,9 +269,9 @@
 
     function drawClefs() {
       ctx.fillStyle = '#000';
-      ctx.font = '48px serif';
-      const trebleY = pitchToY(392.00) + 12;
-      const bassY = pitchToY(130.81) + 16;
+      ctx.font = '64px serif';
+      const trebleY = pitchToY(392.00) + 14; // Center on G4 line
+      const bassY = pitchToY(174.61) + 18;  // Center on F3 line
       ctx.fillText('\uD834\uDD1E', 10, trebleY);
       ctx.fillText('\uD834\uDD22', 10, bassY);
     }

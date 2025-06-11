@@ -171,6 +171,7 @@
     };
 
     function updateMetronome() {
+      if (!audioContext) return;
       if (metronomeInterval) {
         clearInterval(metronomeInterval);
         metronomeInterval = null;

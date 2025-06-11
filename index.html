@@ -269,10 +269,14 @@
 
     function drawClefs() {
       ctx.fillStyle = '#000';
-      ctx.font = '64px serif';
-      const trebleY = pitchToY(392.00) + 14; // Center on G4 line
-      const bassY = pitchToY(174.61) + 18;  // Center on F3 line
+      // Draw treble clef slightly larger so it balances visually
+      ctx.font = '96px serif';
+      const trebleY = pitchToY(392.00) + 36; // Center on G4 line
       ctx.fillText('\uD834\uDD1E', 10, trebleY);
+
+      // Draw bass clef a bit smaller
+      ctx.font = '80px serif';
+      const bassY = pitchToY(174.61) + 32;  // Center on F3 line
       ctx.fillText('\uD834\uDD22', 10, bassY);
     }
 
